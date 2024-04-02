@@ -1,0 +1,183 @@
+---
+title: "705604096_stats101a_hw10"
+author: "Jade Gregory"
+date: "2023-06-06"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(car)
+```
+
+## Question A
+```{r}
+pga <- read.csv("pgatour2006-3.csv")
+head(pga)
+```
+
+a)
+```{r}
+pga.lm <- lm(PrizeMoney ~ DrivingAccuracy + GIR + PuttingAverage + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+mmps(pga.lm)
+plot(pga.lm)
+```
+
+```{r}
+pga.logmodel <- lm(log(PrizeMoney) ~ DrivingAccuracy + GIR + PuttingAverage + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+mmps(pga.logmodel)
+plot(pga.logmodel)
+```
+
+Overall, I agree with the statistician that the log transformation on the Y variable produces a better model for this data. In our mmps of the two models, we can see that the loess line in our log transformation better fits our regression line than in our non-transformed model. This indicates that our log transformation model is better for our data set. Also, we can compare the four plots of the two models. The residual plot for our non-transformed model has a fan shape, suggesting a violation of the constant variance assumption. In our residual plot for our log transformation model, though, has data points plotted evenly and horizontally across the plot, further indicating that this model is the better fit. In our QQ plots, the data points in the log transformation model more tightly follow the ashed line than in our non-transformed model, also suggesting the transformed model is the better model. Analyzing the scale location plot holds the same conclusion, as we can see that the transformed model's plot is evidence of it being a better fit for our data as the points are plotted horizontally across the plane, unlike the data in our scale location plot of our non-transformed model. So, in conclusion, I believe it is smartest to agree with the statisticians recommendation. 
+
+b)
+```{r}
+summary(pga.logmodel)
+plot(pga.logmodel)
+```
+
+My full regression of the model is log(PrizeMoney) = 0.194300 + (-0.003530) * DrivingAccuracy + 0.199311 * GIR + (-0.466304) * PuttingAverage + 0.157341 * BirdieConversion + 0.015174 * SandSaves + 0.051514 * Scrambling + (-0.343131) * PuttsPerRound. From our plots, we can conclude that this is a valid, well fitting model for our data. In our residual plot, the data is plotted evenly and horizontally across the plane suggesting that the constant variance assumption is held in our model. In the QQ norm plot, the data follows the dashed line suggesting that the normality assumption is held in our model. From this analysis, we can conclude that this is a good fitting model for our data.
+
+c)
+```{r}
+(1 + 7) / nrow(pga)
+```
+
+Our qualification for bad leverage points are points with leverage greater than 0.04081633 and have a standardized residual outside of [-2,2]. In our leverage plot we can see that the points 185 and 168 fit the criteria for bad leverage points. Also, point 40 is hard to determine if it is out of the bounds [-2,2], so it may be worth looking into.
+
+d)
+In our scale location plot, we are able to see a slight negative association suggesting that the constant variance condition may not hold in our model. Also, there are a few bad leverage points that we need to explore as well as a handful of high leverage points.
+
+e)
+I would not recommend this approach because in our marginal plots we can see that all of the variables belong in this model. Removing a variable would change how we analyze the rest of the variables, because these response variables deemed insignificant in from the summary still have an effect on the other variables and our model as a whole. Therefore, it would not be in best practice to remove these predictors with insignificant t-values.
+
+## Question B
+a)
+```{r}
+require(leaps)
+bestss <- regsubsets(log(PrizeMoney) ~ DrivingAccuracy + GIR + PuttingAverage + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+summary(bestss)
+```
+```{r}
+n <- nrow(pga)
+ss.bic <- summary(bestss)$bic
+p <- length(ss.bic)
+plot(1:p, ss.bic)
+lines(1:p, ss.bic)
+summary(bestss)$which[which.min(ss.bic),] |> which()
+ss.bestmodelBIC <- lm(log(PrizeMoney) ~ GIR + BirdieConversion + Scrambling, data = pga)
+summary(ss.bestmodelBIC)
+```
+
+Utilizing the best subsets method with BIC, our optimal model is log(PrizeMoney) = -11.08314 + 0.15658 * GIR + 0.20625 * BirdieConversion + 0.09178 * Scrambling.
+
+```{r}
+ss.aic <- ss.bic
+for(i in 1:p){
+  ss.aic[i] <- ss.bic[i] - (log(n) * i) + (2 * i)
+}
+plot(1:p, ss.aic)
+lines(1:p, ss.aic)
+summary(bestss)$which[which.min(ss.aic),] |> which()
+ss.bestmodelAIC <- lm(log(PrizeMoney) ~ GIR + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+summary(ss.bestmodelAIC)
+```
+
+Using the same method with AIC, our optimal model is log(PrizeMoney) = -0.583181 + 0.197022 * GIR + 0.162752 * BirdieConversion + 0.015524 * SandSaves + 0.049635 * Scrambling + (-0.349738) * PuttsPerRound.
+
+b)
+```{r}
+backward <- regsubsets(log(PrizeMoney) ~ DrivingAccuracy + GIR + PuttingAverage + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga, method = "backward")
+summary(backward)
+backward.bic <- summary(backward)$bic
+plot(1:p, backward.bic)
+lines(1:p, backward.bic)
+```
+
+```{r}
+summary(backward)$which[which.min(backward.bic),] |> which()
+backward.bestmodelBIC <- lm(log(PrizeMoney) ~ GIR + BirdieConversion + Scrambling, data = pga)
+summary(backward.bestmodelBIC)
+```
+
+
+Utilizing the backward selection method with BIC, our optimal model is log(PrizeMoney) = -11.08314 + 0.15658 * GIR + 0.20625 * BirdieConversion + 0.09178 * Scrambling.
+
+```{r}
+backward.aic <- backward.bic
+for(i in 1:p){
+  backward.aic[i] <- backward.bic[i] - (log(n) * i) + (2 * i)
+}
+plot(1:p, backward.aic)
+lines(1:p, backward.aic)
+summary(backward)$which[which.min(backward.aic),] |> which()
+```
+```{r}
+backward.bestmodelAIC <- lm(log(PrizeMoney) ~ GIR + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+summary(backward.bestmodelAIC)
+```
+
+Using the backward selection method with AIC, our optimal model is log(PrizeMoney) = -0.583181 + 0.197022 * GIR + 0.162752 * BirdieConversion + 0.015524 * SandSaves + 0.049635 * Scrambling + (-0.349738) * PuttsPerRound.
+
+c)
+```{r}
+forward <- regsubsets(log(PrizeMoney) ~ DrivingAccuracy + GIR + PuttingAverage + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga, method = "forward")
+summary(forward)
+```
+```{r}
+forward.bic <- summary(forward)$bic
+plot(1:p, forward.bic)
+lines(1:p, forward.bic)
+summary(forward)$which[which.min(forward.bic),] |> which()
+```
+```{r}
+forward.bestmodelBIC <- lm(log(PrizeMoney) ~ GIR + BirdieConversion + Scrambling + PuttsPerRound, data = pga)
+summary(forward.bestmodelBIC)
+```
+
+Utilizing the forward selection method with BIC, our optimal model is log(PrizeMoney) = 0.39320 + 0.19352 * GIR + 0.16589 * BirdieConversion + 0.06282 * Scrambling + (-0.37840) * PuttsPerRound.
+
+```{r}
+forward.aic <- forward.bic
+for(i in 1:p){
+  forward.aic[i] <- forward.bic[i] - (log(n) * i) + (2 * i)
+}
+plot(1:p, forward.aic)
+lines(1:p, forward.aic)
+summary(forward)$which[which.min(forward.aic),] |> which()
+```
+```{r}
+forward.bestmodelAIC <-lm(log(PrizeMoney) ~ GIR + BirdieConversion + SandSaves + Scrambling + PuttsPerRound, data = pga)
+summary(forward.bestmodelAIC)
+```
+
+Utilizing the forward selection method with AIC, our optimal model is log(PrizeMoney) = -0.583181 + 0.197022 * GIR + 0.162752 * BirdieConversion + 0.015524 * SandSaves + 0.049635 * Scrambling + (-0.349738) * PuttsPerRound.
+
+e)
+```{r}
+AIC(ss.bestmodelBIC)
+BIC(ss.bestmodelBIC)
+AIC(ss.bestmodelAIC)
+BIC(ss.bestmodelAIC)
+AIC(forward.bestmodelBIC)
+BIC(forward.bestmodelBIC)
+```
+
+In my previous work, I can see that the most optimal models have either 3, 4, or 5 variables included. To determine the most efficient model, I compared the AIC and BIC of the models to one another and concluded that the model with 5 variables has the smallest AIC and the largest BIC, the model with 4 variables has the second smallest AIC and BIc, and the model with 3 variables has the largest AIC and the smallest BIC. From this, I would recommend the simplest model given since none of them have the absolute smallest AIC and BIC both. My final model is log(PrizeMoney) = -11.08314 + 0.15658 * GIR + 0.20625 * BirdieConversion + 0.09178 * Scrambling.
+
+f)
+```{r}
+summary(ss.bestmodelBIC)
+```
+
+Undoing the log conversion on log(PrizeMoney), we can see that PrizeMoney is 1.536928e-05 dollars when the GIR, BirdieConversion, and Scrambling variables are 0. The PrizeMoney increases by 1.169504 dollars on average for each increase in the GIR percentage. The PrizeMoney increases by 1.22906 dollars on average for each increase in the BirdieConversion percentage. The PrizeMoney increases by 1.096124 dollars on average for each increase in the Scrambling percentage. It is best to be cautious when interpreting these results, because real life does not always strictly follow predicted models. Also, we know that in real life it would not make sense for any of the variables measured with percentages to be negative or have values greater than 100. 
+
+
+
+
+
+
+
