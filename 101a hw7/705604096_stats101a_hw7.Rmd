@@ -1,0 +1,169 @@
+---
+title: "705604096_stats101a_hw7"
+author: "Jade Gregory"
+date: "2023-05-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+### Part A
+```{r}
+wwh <- read.delim('waistweightheight.txt')
+```
+
+a)
+```{r}
+weight.lm <- lm(Weight ~ Waist + Height, data = wwh)
+weight.lm
+```
+
+Weight = 2.488 * Height + 4.96 * Waist - 165.533
+
+i.
+```{r}
+anova(weight.lm)
+```
+
+
+RSS = 50259
+SSReg = 358074 + 29843 = 387917
+SYY = RSS + SSReg = 438176
+
+ii.
+```{r}
+summary(weight.lm)
+```
+
+The multiple r-squared value is 0.8853 and the adjusted r-squared value is 0.8848.
+
+iii.
+The slope for height represents that among people with the same waist size, those who are 1 inch taller are an average of 2.488 pounds heavier.
+
+b)
+```{r}
+set.seed(23)
+new.df <- transform(wwh,worthless = rnorm(dim(wwh)[1],0,5))
+```
+
+i. 
+```{r}
+weight.lm2 <- update(weight.lm, .~. + new.df$worthless)
+anova(weight.lm2)
+summary(weight.lm2)
+```
+
+RSS = 50247
+SSReg = 358074 + 29843 + 12 = 387929
+SYY = RSS + SSReg = 438176
+
+ii. 
+RSS decreases by 12 units, and SSReg increases by 12 while SYY stays the same value. 12 is the value of the new.df$worthless sum squared, which was added into this model.
+
+iii.
+The r-squared value is the same with a value of 0.8853, and the adjusted r-squared value has decreased by 0.0002 from its value in part (a) with a new value of 0.8846.
+
+c)
+```{r}
+weight.lm3 <- lm(Weight ~ worthless + Waist + Height, data = new.df)
+anova(weight.lm3)
+summary(weight.lm3)
+```
+
+
+RSS = 50247
+SSReg = 58 + 358020 + 29850 = 387928
+SYY = RSS + SSReg = 438175
+
+The RSS is the same of 50247, while the SSReg value is one unit less than in (b). Therefore, the SYY value is one unit less than the value in (b). Both the r-squared value and adjjusted r-squared values are the same as in part (b).
+
+d)
+I believe the adjusted r-squared value is more reliable to tell whether a new variable should be added to our model or not because the adjusted r-squared value takes into account the addition of new variables whereas the r-squared value will always increase with the addition of new variables, despite the significance of those variables. This can lead to a misrepresentation of how good a specific regression model is for our data. The adjusted r-squared value will actually decrease in value if it decides that a new variable does not contribute to the fit of a regression, by taking into account the degrees of freedom taken by each variable. Therefore, we can confidently say that the adjusted r-squared value is a better measure of whether or not to add a new variable to a model. 
+
+e)
+Usually, the SSReg will increase as we add new variables to a model, regardless of if the additional variable improves the model or not. This is why we cannot just look at SSReg to decide whether to add a new variable. Partial tests are useful for telling us whether we should add a new variable or not because they are able to check the significance of each variable while using the full model. We are able to split the analysis into smaller parts to get a more detailed picture of the model. Partial F-tests are particularly useful because they assess the significance of variables by providing f statistics and p-values that we are able to analyze the statistical significance of. If a variable is deemed statistically significant, then we are able to add that variable to the model as it would increase the productivity of the model.
+
+
+### Part B
+```{r}
+cars <- read.csv('cars04.csv')
+```
+
+```{r}
+cars.new <- cars[,c(-1, -2)]
+cars.new.lm <- lm(SuggestedRetailPrice ~ ., data = cars.new)
+cars.new.lm 
+```
+
+a)
+We do not use Vehicle.Name because it is description of the car that is non-numeric or categorical and therefore does not belong in computation. Rstudio would not have the capacity to account for the inferred meaning of the vehicle's name.
+
+b)
+SuggestedRetailPrice = 349.9763 + 1.0542 * DealerCost - 32.2472 * EngineSize + 228.3295 * Cylinders + 2.3621 * Horsepower - 16.7424 * CityMPG + 46.7575 * HighwayMPG + 0.6992 * Weight + 27.0534 * WheelBase - 7.3202 * Length - 84.7085 * Width
+
+c)
+```{r}
+summary(cars.new.lm)
+```
+
+For the Cylinders variable, the estimated slope is 228.32952 with a t statistic of 3.171 and a p-value of 0.001730. From the t statistic and the p-value, using a significance level of 0.05, we can conclude that there is a relationship between Cylinders and SuggestedRetailPrice variables. With the p-value of 0.001730 being less than 0.05, we reject our null hypothesis that states there is no significant association between the Cylinders and SuggestedRetailPrice variables.
+
+d)
+```{r}
+anova(cars.new.lm)
+```
+```{r}
+sqrt(9.6084)
+```
+
+
+The t statistic is 3.099742. We take the square root of the f statistic to get this value. Sqrt(9.6084) = 3.099742.
+
+e)
+```{r}
+summary(cars.new.lm)
+```
+
+The f statistic is 2.073e+04. Because the value of the f statistic is large, we can assume that the model explains much of the total variability displayed by the data, and we can conclude from this that the model is statistically significant. Using a significance level of 0.05, we can observe that our p-value of 2.2e-16 is less than our significance level and therefore we reject our null hypothesis that states our f statistic was generated by chance. 
+
+f)
+Null: SuggestedRetailPrice ~ DealerCost + EngineSize + Cylinders + Horsepower + Weight + WheelBase + Length + Width
+Alternative: SuggestedRetailPrice ~ DealerCost + EngineSize + Cylinders + Horsepower + CityMPG + HighwayMPG + Weight + WheelBase + Length + Width
+```{r}
+m.full <- lm(SuggestedRetailPrice ~ DealerCost + EngineSize + Cylinders + Horsepower + CityMPG + HighwayMPG + Weight + WheelBase + Length + Width, data = cars.new)
+m.reduced <- update(m.full, .~. -CityMPG-HighwayMPG)
+m.full.anova <- anova(m.full)
+m.full.anova
+```
+
+```{r}
+sum(m.full.anova$`Sum Sq`)
+```
+
+```{r}
+m.reduced.anova <- anova(m.reduced)
+m.reduced.anova
+sum(m.reduced.anova$`Sum Sq`)
+```
+
+```{r}
+sum(m.full.anova$`Sum Sq`) - sum(m.reduced.anova$`Sum Sq`)
+```
+
+The change in regression is 0. Therefore our f statistic is 0.
+
+```{r}
+1 - pf(0, 2, 223)
+```
+
+```{r}
+anova(m.full, m.reduced)
+```
+
+We can determine that our f statistic has a value of 0. The p-value associated with our f statistic is 0.02165, which is less than our significance level of 0.05 and therefore we reject the null hypothesis and we can conclude that full model is the better fit to our data. The full model is the superior model to use for our data when comparing it to the reduced model.
+
