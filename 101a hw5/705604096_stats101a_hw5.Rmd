@@ -1,0 +1,135 @@
+---
+title: "705604096_stats101a_hw5"
+author: "Jade Gregory"
+date: "2023-05-04"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 0
+a)
+```{r}
+df_data <- 1
+df <- 33
+RSE <- 2.418
+RSS <- RSE^2 * df
+RSS
+```
+
+The RSS is 192.9419.
+
+b)
+```{r}
+f <- 87.17
+SSreg <- f * RSS / df * df_data
+SSreg
+```
+
+The SSreg is 509.6589.
+
+c)
+```{r}
+mean_SSreg <- SSreg / df_data
+mean_SSreg
+```
+
+The mean SSreg is 509.6589.
+
+d)
+```{r}
+total_ss <- SSreg + RSS
+total_ss
+```
+
+The total SS is 702.6008.
+
+e)
+```{r}
+r <- sqrt(SSreg / total_ss)
+r
+```
+
+The correlation coefficient is 0.994313.
+
+## Question 1
+```{r}
+arms <- read.csv('armspans2022_gender.csv')
+```
+
+a)
+```{r}
+new_arms <- arms[arms$is.female == 1,]
+length(new_arms$is.female) / length(arms$is.female) * 100
+```
+34.78261% of the class identified as female.
+
+b)
+```{r}
+lm(armspan ~ is.female, data = arms)
+```
+
+The regression equation would be 69.759 - 7.734 * (isfemale). The intercept means that when x = 0, y = 69.759. This is the expected value of Y, so this is the expected value of arm span for someone who identifies as male. 
+
+c)
+The mean tells us that there is a negative correlation between the two variables, arm span and is.female. When is.female = 0, that means the person identifies as male; when is.female is 1, they identify as female. Therefore, since there are two data points in this model, at x = 0 and x = 1, we can conclude that the negative correlation means that the average arm span for people identifying as female is 7.734 measurement units less than the average arm span for those identifying as male. 
+
+d)
+```{r}
+summary(lm(armspan ~ is.female, data = arms))
+```
+
+The null hypothesis states that the average arm span of males and females are the same while the alternative hypothesis states that the average arm span for males differs from the average arm span of females.
+
+## Question 2
+```{r}
+iowa <- read.delim('iowatest.txt')
+```
+
+```{r}
+iowa$is.iowaCity <- iowa$City == 'Iowa City'
+iowaCity.model <- lm(Test ~ is.iowaCity, data = iowa)
+plot(Test ~ is.iowaCity, data = iowa)
+abline(iowaCity.model)
+summary(iowaCity.model)
+```
+
+From our output of our linear model code, we can see that on average schools in Iowa City outperform schools outside of Iowa City by 14.705 on their test. In our hypothesis test performed, our null hypothesis claims that there is no difference between the average test scores and our alternative hypothesis states that there is a difference in test scores when comparing the two areas. Our p-value is 0.00152, which is lower than our significance level of 0.05 so therefore we reject our null hypothesis and can conclude that on average there is a difference between the test scores of schools in Iowa City and outside of Iowa City. These both support our claim that Iowa City schools outperform the rest of the schools in different areas.
+
+## Question 3
+```{r}
+iowa.poverty <- lm(Test ~ Poverty, data = iowa)
+summary(iowa.poverty)
+```
+
+In our hypothesis test, our null hypothesis claims that poverty and test scores have no relationship while our alternative hypothesis claims that poverty and test scores do have a relationship. Our p-value is 2.2e-16, which is less than our significance level of 0.05, so therefore we can reject our null hypothesis and conclude that there is evidence that poverty is associated with test scores.
+
+## Question 4
+```{r}
+plot(iowa.poverty)
+```
+
+The first plot is the residuals vs fitted plot. There is no observable trend in our data points in this plot, suggesting that the linear model is a good fit for our data set. The second plot is the q-q plot. Since the data points in this graph follow the dashed line, there is evidence to assume that the data was drawn from a normal distribution. The third plot is the scale-location plot. Because the data points are plotted horizontally across the graph, we can assume there is constant variance in the model. 
+
+## Question 5
+```{r}
+iowa$leverage <- hatvalues(iowa.poverty)
+iowa$rs <- rstandard(iowa.poverty)
+max(iowa$leverage)
+
+```
+
+```{r}
+iowa.highLeverage <- subset(iowa, leverage > 4 / nrow(iowa))
+subset(iowa.highLeverage, abs(rs) > 2)
+```
+
+The row with the highest leverage point of 0.04997855 is row 27. We can conclude that there are no bad leverage points because none of them lie more than 2 standard residual deviations away from 0.
+
+## Question 6
+In question 3, we are testing whether poverty and test scores have any relationship. The null hypothesis claims that poverty and test scores have no relationship while the alternative hypothesis states that test scores and poverty do have a relationship. Our p-value is 2.2e-16 which is less than our significance level of 0.05, so we can reject our null hypothesis and conclude that poverty and test scores are related. 
+
