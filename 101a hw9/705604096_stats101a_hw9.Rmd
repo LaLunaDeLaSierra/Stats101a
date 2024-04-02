@@ -1,0 +1,89 @@
+---
+title: "705604096_stats101a_hw9"
+author: "Jade Gregory"
+date: "2023-06-01"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+## Question 1
+```{r}
+diet <- read.csv('dietstudy.csv')
+myvars <- c("DIET", "AGE", "SEX", "WEIGHT_0", "DROPOUT2", "WEIGHT_2", "ADHER_2")
+newdiet <- subset(diet, select = c(DIET, AGE, SEX, WEIGHT_0, DROPOUT2, WEIGHT_2, ADHER_2))
+newdiet$wtchange <- newdiet$WEIGHT_2 - newdiet$WEIGHT_0
+head(newdiet)
+```
+
+a)
+```{r}
+diet.lm <- lm(wtchange ~ DIET, data = newdiet)
+diet.lm
+plot(diet.lm)
+ggplot(newdiet, aes(x = DIET, y = wtchange)) + geom_boxplot(fill = 'green')
+```
+
+
+From our plots, it is hard to distinguish whoch diet is most effective as the medians all seem to be close in value. Looking closely, it appears that the Ornish diet is the most effective. 
+
+b)
+```{r}
+newdiet <- filter(newdiet, wtchange != 0)
+head(newdiet)
+```
+
+An individual's weight change value may be zero if they maintained the same weight throughout the diet, meaning that they had the same starting and ending weight values. Or, a weight change value could be zero because the participant did not complete the study.
+
+c)
+```{r}
+newdiet.lm <- lm(wtchange ~ AGE + DIET + SEX + WEIGHT_0 + ADHER_2, data = newdiet)
+newdiet.lm
+summary(newdiet.lm)
+```
+
+Between people with the same gender, age, starting weight, and adherence, these people will see seemingly equivalent results in regards to weight change when using any diet referenced in our model. From our output, we can see that the p-values for the slopes of the Ornish, Weight Watchers, and Zone diets are all greater than our significance level of 0.05, they are deemed insignificant. Therefore, there is deemed no significant difference in weight change between these diets and the Atkins diet, our base diet. Gathering from our model, a physician would not be able to recommend any diet to a patient. 
+
+
+d)
+The slope of the Ornish diet means that among people with the same gender, age, starting weight, and adherence, the people using the Ornish diet will see similar results in regards to weight change as those who are using the Atkins diet of about 5.142936 pounds of weight lost after two months on average. This is because the p-value for the Ornish diet slope deems it insignificant as it is greater than our significance level of 0.05.
+
+e)
+```{r}
+newdiet2.lm <- update(newdiet.lm, . ~ . + ADHER_2:DIET, data = newdiet)
+summary(newdiet2.lm)
+```
+
+From our model, we can see that the p-values for the DIETOrnish:ADHER_2, DIETWeight Watchers:ADHER_2, and DIETZone:ADHER_2 variables are greater than our significance level of 0.05, meaning they are insignificant. Therefore, between people with the same age, gender, starting weight, and adherence it is equally as simple to adhere to the Ornish, Weight Watchers, and Zone diets as it is to adhere to the Atkins diet.
+
+## Question 2
+a)
+From the residuals plot, we can see that our linearity condition is most likely violated as the trend in our data is a slight curve to the data instead of the points dispersed evenly. Also, we can detect a fan shape in our residuals plot suggesting the constant variance assumption is violated as well. The points in our QQ plot seem to not fit the dashed line, suggesting that the normality assumption is violated. We can also see a positive trend in our scale location plot, further supporting the idea that the constant variance trend is violated. In our matrix plot, we can notice non-linearity between our variables. From this, we can conclude that the model in 6.36 is not a valid model.
+
+b)
+From our residuals plot, since we can observe a noticeable pattern among the data points, in this case being a curve, we can conclude that the linearity assumption is violated in our model. This supports the idea that this model is not a great fit for our data.
+
+c)
+From our leverage plot, we can conclude that there are high leverage points. #67 and #223 are considered high leverage points while #223 is a bad high leverage point as it is outside the red dashed line.
+
+d)
+From our matrix plot, we can see that there is more linearity between the variables in our model. In our residuals plot, we cannot notice any specific pattern as the data points are plotted evenly and horizontally, at least more so when compared to our previous model. This suggests that the constant variance and linearity assumptions are upheld by this model. Our QQ plot has data points that fit tightly to the dashed line, suggesting that our normality assumption is held in this model. We can notice a horizontal trend in our scale location plot, further suggesting that our constant variance assumption is held by the model. In our leverage plot, we can see some high leverage points but they have potential to be deemed insignificant. Altogether, this model is valid especially when compared to our previous model of the data.
+
+e)
+```{r}
+f_stat <- (((0.1724^2 * 226) - (0.1781^2 * 228)) / (226 - 228)) / (0.1724^2)
+f_stat
+```
+
+The f statistic is 8.662901.
+
+f)
+Estimating the type of manufacturer on the suggested retail price is the same as estimating a categorical variable on the price. Since this variable would be considered categorically rather than numerically, the summary of the model would output each respective type of manufacturer as its respective coefficients and their significance levels as their own respective variables. 
+
+
