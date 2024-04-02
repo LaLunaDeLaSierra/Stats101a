@@ -1,0 +1,135 @@
+---
+title: "705604096_stats101a_hw8"
+author: "Jade Gregory"
+date: "2023-05-22"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Question 1
+```{r}
+realty <- read.delim('realty.txt')
+head(realty)
+```
+
+```{r}
+table(realty$type)
+```
+
+```{r}
+realty2 <- 
+  filter(realty, type == "Condo/Twh" | type == "SFR") %>%
+  filter(sqft > 0 & bath > 0)
+head(realty2)
+realty3 <- realty2 %>%
+  mutate(lprice = log(price))
+head(realty3)
+```
+
+a)
+```{r}
+realty.lm <- lm(lprice ~ city + bed + bath + sqft, data = realty3)
+realty.lm
+```
+
+The intercept value of the lprice variable, where the lprice variable represents the log(price), is 13.2707947. Undoing the transformation by computing e^13.2707947, our new mean would be 580006.6. Assuming that the conditions of the model hold, this mean represents that the price of the houses is $580006.6 while the house is located in Beverly Hills and has 0.0282502 baths, 0.1743719 beds, and 0.0001731 square feet. This intercept is not practical since it is not realistic for a house to have 0.0001731 square feet.
+
+b)
+When interpreting the cityWestwood variable we can conclude that the price of houses in Westwood are e^-0.6161432 = 0.5400232 less than that of the houses in Beverly Hills. On average, the city that is the least expensive is Long Beach and the city that is most expensive is Beverly Hills.
+
+c)
+While interpreting the bed variable we can conclude that on average, the price of the house will increase by e^0.1743719 = $1.190498 for each bedroom added. Therefore, we know that more bedrooms are more valuable. 
+
+d)
+```{r}
+summary(realty.lm)
+```
+
+The high p-value for the bath variable means that we fail to reject our null hypothesis that states there is no relationship between the bathroom variable and and the lprice variable. Therefore we can conclude that there is no relationship between the number of bathrooms and the log of the price of the houses assuming that the other variables included in the model are significant.
+
+
+e)
+```{r}
+realty4 <- lm(lprice ~ city + bath + sqft, data = realty3)
+realty4
+summary(realty4)
+```
+
+As previously seen, the bath variable is not considered a good predictor of the log of the price of the house when the bed variable is also included in the model. When modeled without the bed variable, the bath variable is considered a good predictor of the log of the price of the house. This can be explained because the number of bathrooms is dependent on the number of bedrooms in a house, and not the other way around. Therefore, you can predict the number of bathrooms in a house based off of the number of bedrooms easier than predicting the number of bedrooms based off of the number of bathrooms. Therefore, adding the bed variable does not add more information to a model than adding the bathroom variable. 
+
+f)
+```{r}
+library(lattice)
+xyplot(lprice ~ bath | bed, realty3)
+```
+
+We can conclude that the bath variable does not provide more information to the model when the bedroom variable is included. This is because we can observe a colinear relationship between the bed and bath variables while the mean between the bath and the log(price) variables does not change at different moments. 
+
+g)
+```{r}
+xyplot(lprice ~ sqft | city, realty3)
+```
+
+Though the association between the log(price) variable and the sqft variable are all positive, the associations vary slightly. The slope and correlation in each graph differs, being more or less positive. Therefore, due to the slightly differing slopes, the assumption is violated.
+
+
+h)
+```{r}
+msmall <- lm(price ~ bed + bath + sqft, data = realty3)
+msmall.log <- lm(lprice ~ bed + bath + sqft, data = realty3)
+
+car::mmps(msmall)
+```
+```{r}
+car::mmps(msmall.log)
+```
+In the first marginal plot, we can see that each variable has a regression line that is close in space to the loess line, as well as seemingly following the same pattern. The fitted values plot has a regression line tight to the loess line, indicating that this is a good fit for the data. The second marginal plot of the transformed variable is not a good fit for teh data because all of the regression lines for the variables do not follow the loess line in the plots. From our plots, it is obvious that our first model without the log transformation is best. We can conclude this because for every predictor variable, the regression line better matches our loess line than in our transformed graphs. This means that our predictor variables are more significant in our first model that does not use the transformation. Also, the fitted values plot has a tighter regression line to the loess line, indicating that the first model is a better model as well.
+
+## Question 2
+```{r}
+salary <- read.csv('salary.csv')
+head(salary)
+```
+
+a)
+```{r}
+salary.lm <- lm(Salary ~ Expernc + Gender, data = salary)
+salary.lm
+summary(salary.lm)
+```
+
+Salary = 36724.0 + 295.6 * Expernc + 4670.5 * Gender
+
+From the summary, we can tell that the intercept means that the starting salary for people who have zero years of experience for males is 4670.5 more than those of Females on average. Therefore, the starting salary for males in 41394.5 while the starting salary for females is 36724 on average.
+
+b)
+```{r}
+salary.full <- lm(Salary ~ Expernc*Gender, data= salary)
+salary.full
+summary(salary.full)
+```
+
+The intercept for men is 1952.10 more than the women on average with zero years of experience. Therefore, the starting salary of males is 40294.53 while for females it is 38342.43 with zero years of experience, on average.
+
+c)
+```{r}
+salary.diffSlope <- lm(Salary ~ Expernc:Gender, data = salary)
+salary.diffSlope
+summary(salary.diffSlope)
+```
+
+The equation is Salary = 39455.5 - 213.3 * GenderFemale + 603.7 * GenderMale. Therefore, the mean for females is -213.3, meaning that on avergae their salary decreases by 213.3 dollars for each year of experience. The slope for males is 603.7 meaning that on average their salary increases by 603.7 dollars.
+
+## Question 3
+```{r}
+expernc.model <- lm(Salary~ Expernc, data = salary)
+car::mmps(expernc.model)
+```
+
+The marginal plots suggest that the model is not the best fit for our data. This is because the regression line in blue does not match nor follow the loess line in red. Our loess line is not linear as well, indicating that our linearity assumption is violated. Therefore, we can conclude that this is not a good fit for the data. 
